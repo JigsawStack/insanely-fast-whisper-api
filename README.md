@@ -1,15 +1,15 @@
 # Insanely Fast Whisper API
-An API to transcribe Audio urls with [OpenAI's Whisper Large v3](https://huggingface.co/openai/whisper-large-v3)! Powered by 🤗 Transformers, Optimum & flash-attn
+An API to transcribe audio with [OpenAI's Whisper Large v3](https://huggingface.co/openai/whisper-large-v3)! Powered by 🤗 Transformers, Optimum & flash-attn
 
-Based on [Insanely Fast Whisper CLI](https://github.com/Vaibhavs10/insanely-fast-whisper) project. Check it out if you like to set up this project locally or understand the stats.
+Based on [Insanely Fast Whisper CLI](https://github.com/Vaibhavs10/insanely-fast-whisper) project. Check it out if you like to set up this project locally or understand the background of insanely-fast-whisper.
 
 This project is focused on providing a deployable blazing fast whisper API with docker on cloud infrastructure with GPUs for scalable production use cases.
 
-With [Fly.io GPU service launch](https://fly.io/docs/gpus/gpu-quickstart/), I've set up the fly config file to easily deploy on fly machines! However you can deploy this on any other VM environments that support GPUs and docker.
+With [Fly.io recent GPU service launch](https://fly.io/docs/gpus/gpu-quickstart/), I've set up the fly config file to easily deploy on fly machines! However, you can deploy this on any other VM environment that supports GPUs and docker.
 
 
-Not convinced? Here are some benchmarks we ran on a Nvidia A100 - 80GB 👇
-| Optimisation type    | Time to Transcribe (150 mins of Audio) |
+Here are some benchmarks we ran on Nvidia A100 - 80GB and fly.io GPU infra👇
+| Optimization type    | Time to Transcribe (150 mins of Audio) |
 |------------------|------------------|
 | **large-v3 (Transformers) (`fp16` + `batching [24]` + `Flash Attention 2`)** | **~2 (*1 min 38 sec*)**            |
 | **large-v3 (Transformers) (`fp16` + `batching [24]` + `Flash Attention 2` + `diarization`)** | **~2 (*3 min 16 sec*)**            |
@@ -25,7 +25,7 @@ The estimated startup time for the Fly machine with GPU and loading up the model
 
 [Install fly cli](https://fly.io/docs/hands-on/install-flyctl/) if don't already have it
 
-Only need to run the first you launch a new app
+Only need to run this the first time you launch a new fly app
 ```bash
 fly launch
 ```
@@ -46,7 +46,7 @@ Run `fly secrets list` to check if the secrets exist.
 To get the Hugging face token for speaker diarization you need to do the following:
 1. Accept [`pyannote/segmentation-3.0`](https://hf.co/pyannote/segmentation-3.0) user conditions
 2. Accept [`pyannote/speaker-diarization-3.1`](https://hf.co/pyannote/speaker-diarization-3.1) user conditions
-3. Create access token at [`hf.co/settings/tokens`](https://hf.co/settings/tokens).
+3. Create an access token at [`hf.co/settings/tokens`](https://hf.co/settings/tokens).
 
 
 Your API should look something like this:
@@ -61,14 +61,14 @@ Run `fly logs -a insanely-fast-whisper` to view logs in real time of your fly ma
 Since this is a dockerized app, you can deploy it to any cloud provider that supports docker and GPUs with a few config tweaks.
 
 ## Full managed and scalable API 
-[JigsawStack](https://jigsawstack.com) provides a bunch of powerful APIs for various use cases while keeping cost low. This project will soon be available as a fully managed API on JigsawStack with tons more optimization to reduce cost with high uptime. You can sign up [here](https://jigsawstack.com) for free!
+[JigsawStack](https://jigsawstack.com) provides a bunch of powerful APIs for various use cases while keeping costs low. This project will soon be available as a fully managed API on JigsawStack with tons more optimization to reduce cost with high uptime. You can sign up [here](https://jigsawstack.com) for free!
 
 
 ## API usage
 
 ### Authentication
 
-If you had set up the `ADMIN_KEY` environment secret. You'll need to pass `x-admin-api-key` in the header with the value of the key your set.
+If you had set up the `ADMIN_KEY` environment secret. You'll need to pass `x-admin-api-key` in the header with the value of the key you previously set.
 
 ### Query params
 | Name    | value |
@@ -100,7 +100,7 @@ $ pip3 install flash-attn --no-build-isolation
 # generate updated requirements.txt if you want to use other management tools (Optional)
 $ poetry export --output requirements.txt
 
-# get path of python
+# get the path of python
 $ which python3
 
 # setup virtual environment 
@@ -120,4 +120,4 @@ $ uvicorn app.app:app --reload
 
 
 ## JigsawStack
-This project is part of [JigsawStack](https://jigsawstack.com) - A suite of powerful and developer friendly APIs for various use cases while keeping cost low. Sign up [here](https://jigsawstack.com) for free!
+This project is part of [JigsawStack](https://jigsawstack.com) - A suite of powerful and developer friendly APIs for various use cases while keeping costs low. Sign up [here](https://jigsawstack.com) for free!
