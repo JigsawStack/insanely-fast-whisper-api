@@ -34,7 +34,7 @@ fly launch
 
 - Fly will prompt: `Do you want to tweak these settings before proceeding` if you have nothing to adjust. Most of the required settings are already configured in the `fly.toml` file. No `n` to proceed and deploy.
 
-The first time you deploy it will take some time since the image is huge Subsequent deploys will be a lot faster.
+The first time you deploy it will take some time since the image is huge. Subsequent deploys will be a lot faster.
 
 Run the following if you want to set up speaker diarization or an auth token to secure your API:
 
