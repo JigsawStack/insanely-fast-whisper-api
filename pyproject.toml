@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "insanely-fast-whisper-api"
+version = "0.1.0"
+description = "An insanely fast whisper API"
+authors = ["Yoeven D Khemlani <yoevenkhem@gmail.com>"]
+packages = [{ include = "app" }]
+readme = "README.md"
+license = "MIT"
+
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = "^0.109.2"
+gunicorn = "^21.2.0"
+uvicorn = { extras = ["standard"], version = "^0.27.1" }
+transformers = "^4.37.2"
+optimum = "^1.17.0"
+accelerate = "^0.27.2"
+setuptools = "^69.1.0"
+pyannote-audio = "^3.1.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

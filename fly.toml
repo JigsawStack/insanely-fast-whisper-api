@@ -1,0 +1,22 @@
+app = 'insanely-fast-whisper-api'
+primary_region = 'sjc'
+
+[build]
+
+[[mounts]]
+source = 'data'
+destination = '/root/.cache'
+
+[http_service]
+internal_port = 9000
+force_https = true
+auto_stop_machines = true
+auto_start_machines = true
+min_machines_running = 0
+processes = ['app']
+
+[[vm]]
+size = 'a100-80gb'
+memory = '8gb'
+cpu_kind = 'performance'
+cpus = 4
