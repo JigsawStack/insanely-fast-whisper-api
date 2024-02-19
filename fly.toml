@@ -6,6 +6,8 @@ primary_region = 'sjc'
 [[mounts]]
 source = 'data'
 destination = '/root/.cache'
+initial_size = '30gb'
+
 
 [http_service]
 internal_port = 9000

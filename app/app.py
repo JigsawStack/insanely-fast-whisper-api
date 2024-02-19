@@ -1,8 +1,10 @@
 import os
-from fastapi import FastAPI, Query, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, Body, BackgroundTasks
+from pydantic import BaseModel
 import torch
 from transformers import pipeline
 from .diarization_pipeline import diarize
+import requests
 
 
 admin_key = os.environ.get(
@@ -24,27 +26,22 @@ pipe = pipeline(
 app = FastAPI()
 
 
-@app.get("/")
-def read_root(
-    x_admin_api_key=Header(),
-    url: str = Query(),
-    task: str = Query(default="transcribe", enum=["transcribe", "translate"]),
-    language: str = Query(default="None"),
-    batch_size: int = Query(default=64),
-    timestamp: str = Query(default="chunk", enum=["chunk", "word"]),
-    diarise_audio: bool = Query(
-        default=False,
-    ),
+class WebhookBody(BaseModel):
+    url: str
+    header: dict[str, str] = {}
+
+
+def process(
+    url: str,
+    task: str,
+    language: str,
+    batch_size: int,
+    timestamp: str,
+    diarise_audio: bool,
+    webhook: WebhookBody | None = None,
 ):
-    if admin_key is not None:
-        if x_admin_api_key != admin_key:
-            raise HTTPException(status_code=401, detail="Invalid API Key")
-
-    if url.lower().startswith("http") is False:
-        raise HTTPException(status_code=400, detail="Invalid URL")
-
-    if diarise_audio is True and hf_token is None:
-        raise HTTPException(status_code=500, detail="Missing Hugging Face Token")
+    errorMessage: str | None = None
+    outputs = {}
 
     try:
         generate_kwargs = {
@@ -67,7 +64,82 @@ def read_root(
                 outputs,
             )
             outputs["speakers"] = speakers_transcript
+    except Exception as e:
+        errorMessage = str(e)
 
-        return outputs
+    if webhook is not None:
+        requests.post(
+            webhook.url,
+            headers=webhook.header,
+            json=(
+                {"output": outputs, "status": "completed"}
+                if errorMessage is None
+                else {"error": errorMessage, "status": "error"}
+            ),
+        )
+
+    if errorMessage is not None:
+        raise Exception(errorMessage)
+
+    return outputs
+
+
+@app.post("/")
+def root(
+    background_tasks: BackgroundTasks,
+    x_admin_api_key=Header(),
+    url: str = Body(),
+    task: str = Body(default="transcribe", enum=["transcribe", "translate"]),
+    language: str = Body(default="None"),
+    batch_size: int = Body(default=64),
+    timestamp: str = Body(default="chunk", enum=["chunk", "word"]),
+    diarise_audio: bool = Body(
+        default=False,
+    ),
+    webhook: WebhookBody | None = None,
+    is_async: bool = Body(default=False),
+):
+    if admin_key is not None:
+        if x_admin_api_key != admin_key:
+            raise HTTPException(status_code=401, detail="Invalid API Key")
+
+    if url.lower().startswith("http") is False:
+        raise HTTPException(status_code=400, detail="Invalid URL")
+
+    if diarise_audio is True and hf_token is None:
+        raise HTTPException(status_code=500, detail="Missing Hugging Face Token")
+
+    if is_async is True and webhook is None:
+        raise HTTPException(
+            status_code=400, detail="Webhook is required for async tasks"
+        )
+
+    try:
+        if is_async is True:
+            background_tasks.add_task(
+                process,
+                url,
+                task,
+                language,
+                batch_size,
+                timestamp,
+                diarise_audio,
+                webhook,
+            )
+            return {
+                "message": "Task is being processed in the background",
+                "status": "processing",
+            }
+        else:
+            outputs = process(
+                url,
+                task,
+                language,
+                batch_size,
+                timestamp,
+                diarise_audio,
+                webhook,
+            )
+        return {"output": outputs, "status": "completed"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

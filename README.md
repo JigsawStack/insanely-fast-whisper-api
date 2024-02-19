@@ -55,7 +55,7 @@ Your API should look something like this:
 https://insanely-fast-whisper-api.fly.dev
 ```
 
-Run `fly logs -a insanely-fast-whisper` to view logs in real time of your fly machine.
+Run `fly logs -a insanely-fast-whisper-api` to view logs in real time of your fly machine.
 
 ## Deploying to other cloud providers
 Since this is a dockerized app, you can deploy it to any cloud provider that supports docker and GPUs with a few config tweaks.
@@ -70,7 +70,7 @@ Since this is a dockerized app, you can deploy it to any cloud provider that sup
 
 If you had set up the `ADMIN_KEY` environment secret. You'll need to pass `x-admin-api-key` in the header with the value of the key you previously set.
 
-### Query params
+### Body params (JSON)
 | Name    | value |
 |------------------|------------------|
 | url (Required) |  url of audio |
@@ -79,6 +79,11 @@ If you had set up the `ADMIN_KEY` environment secret. You'll need to pass `x-adm
 | batch_size | Number of parallel batches you want to compute. Reduce if you face OOMs. default: `64` |
 | timestamp | `chunk`, `work`  default: `chunk` |
 | diarise_audio | Diarise the audio clips by speaker. You will need to set hf_token. default:`false` |
+| webhook | Webhook `POST` call on completion or error. default: `None` |
+| webhook.url | URL to send the webhook |
+| webhook.headers | Headers to send with the webhook |
+| is_async | Run task in background and sends results to webhook URL. `true`, `false` default: `false` |
+
 
 ## Running locally
 ```bash
