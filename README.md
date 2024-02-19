@@ -18,10 +18,17 @@ Here are some benchmarks we ran on Nvidia A100 - 80GB and fly.io GPU infra👇
 
 The estimated startup time for the Fly machine with GPU and loading up the model is around ~20 seconds. The rest of the time is spent on the actual computation.
 
+## Docker image
+```
+yoeven/insanely-fast-whisper-api:latest
+```
+Docker hub: [yoeven/insanely-fast-whisper-api](https://hub.docker.com/r/yoeven/insanely-fast-whisper-api)
+
 ## Deploying to Fly
 - Make sure you already have access to Fly GPUs.
 - Clone the project locally and open a terminal in the root
 - Rename the `app` name in the `fly.toml` if you like
+- Remove `image = 'yoeven/insanely-fast-whisper-api:latest'` in the `fly.toml` for fly to rebuild the image on deploy from the `Dockerfile`
 
 [Install fly cli](https://fly.io/docs/hands-on/install-flyctl/) if don't already have it
 
@@ -81,7 +88,7 @@ If you had set up the `ADMIN_KEY` environment secret. You'll need to pass `x-adm
 | diarise_audio | Diarise the audio clips by speaker. You will need to set hf_token. default:`false` |
 | webhook | Webhook `POST` call on completion or error. default: `None` |
 | webhook.url | URL to send the webhook |
-| webhook.headers | Headers to send with the webhook |
+| webhook.header | Headers to send with the webhook |
 | is_async | Run task in background and sends results to webhook URL. `true`, `false` default: `false` |
 
 
@@ -117,11 +124,6 @@ $ poetry install
 # run the app
 $ uvicorn app.app:app --reload
 ```
-## Docker image
-```
-yoeven/insanely-fast-whisper-api:latest
-```
-Docker hub: [yoeven/insanely-fast-whisper-api](https://hub.docker.com/r/yoeven/insanely-fast-whisper-api)
 
 ## Acknowledgements
 
