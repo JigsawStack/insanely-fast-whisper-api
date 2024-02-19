@@ -3,7 +3,7 @@ primary_region = 'sjc'
 
 [build]
 image = 'yoeven/insanely-fast-whisper-api:latest'
-## Remove the line above to deploy from the latest built image
+## Remove the line above to rebuild the image from the Dockerfile
 
 [[mounts]]
 source = 'data'

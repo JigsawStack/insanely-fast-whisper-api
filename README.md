@@ -28,7 +28,7 @@ Docker hub: [yoeven/insanely-fast-whisper-api](https://hub.docker.com/r/yoeven/i
 - Make sure you already have access to Fly GPUs.
 - Clone the project locally and open a terminal in the root
 - Rename the `app` name in the `fly.toml` if you like
-- Remove `image = 'yoeven/insanely-fast-whisper-api:latest'` in the `fly.toml` for fly to rebuild the image on deploy from the `Dockerfile`
+- Remove `image = 'yoeven/insanely-fast-whisper-api:latest'` in `fly.toml` only if you want to rebuild the image from the `Dockerfile`
 
 [Install fly cli](https://fly.io/docs/hands-on/install-flyctl/) if don't already have it
 
