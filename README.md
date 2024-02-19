@@ -117,6 +117,11 @@ $ poetry install
 # run the app
 $ uvicorn app.app:app --reload
 ```
+## Docker image
+```
+yoeven/insanely-fast-whisper-api:latest
+```
+Docker hub: [yoeven/insanely-fast-whisper-api](https://hub.docker.com/r/yoeven/insanely-fast-whisper-api)
 
 ## Acknowledgements
 

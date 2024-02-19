@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "insanely-fast-whisper-api"
-version = "0.1.0"
+version = "0.2.0"
 description = "An insanely fast whisper API"
 authors = ["Yoeven D Khemlani <yoevenkhem@gmail.com>"]
 packages = [{ include = "app" }]
