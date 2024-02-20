@@ -67,7 +67,7 @@ Run `fly logs -a insanely-fast-whisper-api` to view logs in real time of your fl
 ## Deploying to other cloud providers
 Since this is a dockerized app, you can deploy it to any cloud provider that supports docker and GPUs with a few config tweaks.
 
-## Full managed and scalable API 
+## Fully managed and scalable API 
 [JigsawStack](https://jigsawstack.com) provides a bunch of powerful APIs for various use cases while keeping costs low. This project will soon be available as a fully managed API on JigsawStack with tons more optimization to reduce cost with high uptime. You can sign up [here](https://jigsawstack.com) for free!
 
 
