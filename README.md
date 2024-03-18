@@ -1,6 +1,16 @@
 # Insanely Fast Whisper API
 An API to transcribe audio with [OpenAI's Whisper Large v3](https://huggingface.co/openai/whisper-large-v3)! Powered by 🤗 Transformers, Optimum & flash-attn
 
+Features:
+* 🎤 Transcribe audio to text at blazing fast speeds
+* 📖 Fully open source and deployable on any GPU cloud provider
+* 🗣️ Built-in speaker diarization
+* ⚡ Easy to use and Fast API layer
+* 📃 Async background tasks and webhooks
+* 🔥 Optimized for concurrency and parallel processing
+* ✅ Task management, cancel and status endpoints
+* 🔒 Admin authentication for secure API access
+
 Based on [Insanely Fast Whisper CLI](https://github.com/Vaibhavs10/insanely-fast-whisper) project. Check it out if you like to set up this project locally or understand the background of insanely-fast-whisper.
 
 This project is focused on providing a deployable blazing fast whisper API with docker on cloud infrastructure with GPUs for scalable production use cases.
@@ -74,10 +84,20 @@ Since this is a dockerized app, you can deploy it to any cloud provider that sup
 ## API usage
 
 ### Authentication
-
 If you had set up the `ADMIN_KEY` environment secret. You'll need to pass `x-admin-api-key` in the header with the value of the key you previously set.
 
-### Body params (JSON)
+
+### Endpoints
+#### Base URL
+If deployed on Fly, the base URL should look something like this:
+```
+https://{app_name}.fly.dev/{path}
+```
+Depending on the cloud provider you deploy to, the base URL will be different.
+
+#### **POST** `/`
+Transcribe or translate audio into text
+##### Body params (JSON)
 | Name    | value |
 |------------------|------------------|
 | url (Required) |  url of audio |
@@ -90,6 +110,15 @@ If you had set up the `ADMIN_KEY` environment secret. You'll need to pass `x-adm
 | webhook.url | URL to send the webhook |
 | webhook.header | Headers to send with the webhook |
 | is_async | Run task in background and sends results to webhook URL. `true`, `false` default: `false` |
+
+#### **GET** `/tasks`
+Get all active transcription tasks, both async background tasks and ongoing tasks
+
+#### **GET** `/status/{task_id}`
+Get the status of a task, completed tasks will be removed from the list which may throw an error
+
+#### **DELETE** `/cancel/{task_id}`
+Cancel async background task. Only transcription jobs created with `is_async` set to `true` can be cancelled.
 
 
 ## Running locally
@@ -124,6 +153,18 @@ $ poetry install
 # run the app
 $ uvicorn app.app:app --reload
 ```
+
+## Extra
+### Shutting down fly machine programmatically
+Fly machines are charged by the second and might take up to 15mins of idling before it decides to shut it self down. You can shut down the machine when you're done with the API to save costs. You can do this by sending a `POST` request to the following endpoint:
+```
+https://api.machines.dev/v1/apps/<app_name>/machines/<machine_id>/stop
+```
+Authorization header:
+```
+Authorization Bearer <fly_token>
+```
+Lear more [here](https://fly.io/docs/machines/api/machines-resource/)
 
 ## Acknowledgements
 

@@ -1,10 +1,20 @@
 import os
-from fastapi import FastAPI, Header, HTTPException, Body, BackgroundTasks
+from fastapi import (
+    FastAPI,
+    Header,
+    HTTPException,
+    Body,
+    BackgroundTasks,
+    Request,
+)
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import torch
 from transformers import pipeline
 from .diarization_pipeline import diarize
 import requests
+import asyncio
+import uuid
 
 
 admin_key = os.environ.get(
@@ -13,6 +23,11 @@ admin_key = os.environ.get(
 
 hf_token = os.environ.get(
     "HF_TOKEN",
+)
+
+# fly runtime env https://fly.io/docs/machines/runtime-environment
+fly_machine_id = os.environ.get(
+    "FLY_MACHINE_ID",
 )
 
 pipe = pipeline(
@@ -24,6 +39,8 @@ pipe = pipeline(
 )
 
 app = FastAPI()
+loop = asyncio.get_event_loop()
+running_tasks = {}
 
 
 class WebhookBody(BaseModel):
@@ -39,10 +56,10 @@ def process(
     timestamp: str,
     diarise_audio: bool,
     webhook: WebhookBody | None = None,
+    task_id: str | None = None,
 ):
     errorMessage: str | None = None
     outputs = {}
-
     try:
         generate_kwargs = {
             "task": task,
@@ -64,18 +81,28 @@ def process(
                 outputs,
             )
             outputs["speakers"] = speakers_transcript
+    except asyncio.CancelledError:
+        errorMessage = "Task Cancelled"
     except Exception as e:
         errorMessage = str(e)
 
+    if task_id is not None:
+        del running_tasks[task_id]
+
     if webhook is not None:
+        webhookResp = (
+            {"output": outputs, "status": "completed", "task_id": task_id}
+            if errorMessage is None
+            else {"error": errorMessage, "status": "error", "task_id": task_id}
+        )
+
+        if fly_machine_id is not None:
+            webhookResp["fly_machine_id"] = fly_machine_id
+
         requests.post(
             webhook.url,
             headers=webhook.header,
-            json=(
-                {"output": outputs, "status": "completed"}
-                if errorMessage is None
-                else {"error": errorMessage, "status": "error"}
-            ),
+            json=(webhookResp),
         )
 
     if errorMessage is not None:
@@ -84,10 +111,19 @@ def process(
     return outputs
 
 
+@app.middleware("http")
+async def admin_key_auth_check(request: Request, call_next):
+    if admin_key is not None:
+        if ("x-admin-api-key" not in request.headers) or (
+            request.headers["x-admin-api-key"] != admin_key
+        ):
+            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    response = await call_next(request)
+    return response
+
+
 @app.post("/")
 def root(
-    background_tasks: BackgroundTasks,
-    x_admin_api_key=Header(),
     url: str = Body(),
     task: str = Body(default="transcribe", enum=["transcribe", "translate"]),
     language: str = Body(default="None"),
@@ -98,11 +134,8 @@ def root(
     ),
     webhook: WebhookBody | None = None,
     is_async: bool = Body(default=False),
+    managed_task_id: str | None = Body(default=None),
 ):
-    if admin_key is not None:
-        if x_admin_api_key != admin_key:
-            raise HTTPException(status_code=401, detail="Invalid API Key")
-
     if url.lower().startswith("http") is False:
         raise HTTPException(status_code=400, detail="Invalid URL")
 
@@ -114,23 +147,33 @@ def root(
             status_code=400, detail="Webhook is required for async tasks"
         )
 
+    task_id = managed_task_id if managed_task_id is not None else str(uuid.uuid4())
+
     try:
+        resp = {}
         if is_async is True:
-            background_tasks.add_task(
-                process,
-                url,
-                task,
-                language,
-                batch_size,
-                timestamp,
-                diarise_audio,
-                webhook,
+            backgroundTask = asyncio.ensure_future(
+                loop.run_in_executor(
+                    None,
+                    process,
+                    url,
+                    task,
+                    language,
+                    batch_size,
+                    timestamp,
+                    diarise_audio,
+                    webhook,
+                    task_id,
+                )
             )
-            return {
-                "message": "Task is being processed in the background",
+            running_tasks[task_id] = backgroundTask
+            resp = {
+                "detail": "Task is being processed in the background",
                 "status": "processing",
+                "task_id": task_id,
             }
         else:
+            running_tasks[task_id] = None
             outputs = process(
                 url,
                 task,
@@ -139,7 +182,52 @@ def root(
                 timestamp,
                 diarise_audio,
                 webhook,
+                task_id,
             )
-        return {"output": outputs, "status": "completed"}
+            resp = {
+                "output": outputs,
+                "status": "completed",
+                "task_id": task_id,
+            }
+        if fly_machine_id is not None:
+            resp["fly_machine_id"] = fly_machine_id
+        return resp
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/tasks")
+def tasks():
+    return {"tasks": list(running_tasks.keys())}
+
+
+@app.get("/status/{task_id}")
+def status(task_id: str):
+    if task_id not in running_tasks:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task = running_tasks[task_id]
+
+    if task is None:
+        return {"status": "processing"}
+    elif task.done() is False:
+        return {"status": "processing"}
+    else:
+        return {"status": "completed", "output": task.result()}
+
+
+@app.delete("/cancel/{task_id}")
+def cancel(task_id: str):
+    if task_id not in running_tasks:
+        raise HTTPException(status_code=404, detail="Task not found")
+
+    task = running_tasks[task_id]
+    if task is None:
+        return HTTPException(status_code=400, detail="Not a background task")
+    elif task.done() is False:
+        task.cancel()
+        del running_tasks[task_id]
+        return {"status": "cancelled"}
+    else:
+        return {"status": "completed", "output": task.result()}

@@ -1,3 +1,6 @@
+
+# https://fly.io/docs/reference/configuration
+
 app = 'insanely-fast-whisper-api' # Replace with your app name
 primary_region = 'sjc'
 
