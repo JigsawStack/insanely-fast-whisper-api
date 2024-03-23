@@ -10,6 +10,7 @@ Features:
 * 🔥 Optimized for concurrency and parallel processing
 * ✅ Task management, cancel and status endpoints
 * 🔒 Admin authentication for secure API access
+* 🧩 Fully managed API available on [JigsawStack](https://jigsawstack.com/speech-to-text)
 
 Based on [Insanely Fast Whisper CLI](https://github.com/Vaibhavs10/insanely-fast-whisper) project. Check it out if you like to set up this project locally or understand the background of insanely-fast-whisper.
 
@@ -78,7 +79,7 @@ Run `fly logs -a insanely-fast-whisper-api` to view logs in real time of your fl
 Since this is a dockerized app, you can deploy it to any cloud provider that supports docker and GPUs with a few config tweaks.
 
 ## Fully managed and scalable API 
-[JigsawStack](https://jigsawstack.com) provides a bunch of powerful APIs for various use cases while keeping costs low. This project will soon be available as a fully managed API on JigsawStack with tons more optimization to reduce cost with high uptime. You can sign up [here](https://jigsawstack.com) for free!
+[JigsawStack](https://jigsawstack.com) provides a bunch of powerful APIs for various use cases while keeping costs low. This project is available as a fully managed API [here](https://jigsawstack.com/speech-to-text) with enhanced cloud scalability for cost efficiency and high uptime. Sign up [here](https://jigsawstack.com) for free!
 
 
 ## API usage
