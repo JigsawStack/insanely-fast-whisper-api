@@ -113,6 +113,9 @@ Transcribe or translate audio into text
 | is_async | Run task in background and sends results to webhook URL. `true`, `false` default: `false` |
 | managed_task_id | Custom Task ID used to reference ongoing task. default: `uuid() v4 will be generated for each transcription task` |
 
+#### **POST** `/upload`
+Same as above, except it takes a file upload instead of a URL
+
 #### **GET** `/tasks`
 Get all active transcription tasks, both async background tasks and ongoing tasks
 
