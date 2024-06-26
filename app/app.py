@@ -11,6 +11,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import torch
 from transformers import pipeline
+from transformers.utils import is_flash_attn_2_available
 from .diarization_pipeline import diarize
 import requests
 import asyncio
@@ -34,8 +35,9 @@ pipe = pipeline(
     "automatic-speech-recognition",
     model="openai/whisper-large-v3",
     torch_dtype=torch.float16,
-    device="cuda:0"
-    #model_kwargs=({"attn_implementation": "flash_attention_2"}),
+    device="cuda:0",
+    model_kwargs={"attn_implementation": "flash_attention_2"} if is_flash_attn_2_available() else {"attn_implementation": "sdpa"},
+
 )
 
 app = FastAPI()
