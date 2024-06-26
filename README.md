@@ -78,6 +78,10 @@ Run `fly logs -a insanely-fast-whisper-api` to view logs in real time of your fl
 ## Deploying to other cloud providers
 Since this is a dockerized app, you can deploy it to any cloud provider that supports docker and GPUs with a few config tweaks.
 
+Here's an example docker command:
+
+`docker run --name insanely-fast-whisper-api --restart=always -d --gpus all -p 9000:9000 yoeven/insanely-fast-whisper-api`
+
 ## Fully managed and scalable API 
 [JigsawStack](https://jigsawstack.com) provides a bunch of powerful APIs for various use cases while keeping costs low. This project is available as a fully managed API [here](https://jigsawstack.com/speech-to-text) with enhanced cloud scalability for cost efficiency and high uptime. Sign up [here](https://jigsawstack.com) for free!
 
@@ -112,6 +116,9 @@ Transcribe or translate audio into text
 | webhook.header | Headers to send with the webhook |
 | is_async | Run task in background and sends results to webhook URL. `true`, `false` default: `false` |
 | managed_task_id | Custom Task ID used to reference ongoing task. default: `uuid() v4 will be generated for each transcription task` |
+
+#### **POST** `/upload`
+Same as above, except it takes a file upload instead of a URL
 
 #### **GET** `/tasks`
 Get all active transcription tasks, both async background tasks and ongoing tasks
