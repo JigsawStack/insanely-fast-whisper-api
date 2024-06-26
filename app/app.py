@@ -34,8 +34,8 @@ pipe = pipeline(
     "automatic-speech-recognition",
     model="openai/whisper-large-v3",
     torch_dtype=torch.float16,
-    device="cuda:0",
-    model_kwargs=({"attn_implementation": "flash_attention_2"}),
+    device="cuda:0"
+    #model_kwargs=({"attn_implementation": "flash_attention_2"}),
 )
 
 app = FastAPI()
