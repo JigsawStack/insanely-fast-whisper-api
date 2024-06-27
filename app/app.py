@@ -18,11 +18,6 @@ import requests
 import asyncio
 import uuid
 
-
-admin_key = os.environ.get(
-    "ADMIN_KEY",
-)
-
 hf_token = os.environ.get(
     "HF_TOKEN",
 )
@@ -112,18 +107,6 @@ def process(
         raise Exception(errorMessage)
 
     return outputs
-
-
-@app.middleware("http")
-async def admin_key_auth_check(request: Request, call_next):
-    if admin_key is not None:
-        if ("x-admin-api-key" not in request.headers) or (
-            request.headers["x-admin-api-key"] != admin_key
-        ):
-            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
-    response = await call_next(request)
-    return response
-
 
 @app.post("/")
 def root(
