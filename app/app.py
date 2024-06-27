@@ -202,7 +202,7 @@ def root(
 
 @app.post("/upload")
 def upload(
-    audio: UploadFile,
+    file: UploadFile,
     task: str = Body(default="transcribe", enum=["transcribe", "translate"]),
     language: str = Body(default="None"),
     batch_size: int = Body(default=64),
@@ -214,7 +214,7 @@ def upload(
     is_async: bool = Body(default=False),
     managed_task_id: str | None = Body(default=None),
 ):
-    audio = audio.file.read()
+    file = file.file.read()
     if diarise_audio is True and hf_token is None:
         raise HTTPException(status_code=500, detail="Missing Hugging Face Token")
 
@@ -232,7 +232,7 @@ def upload(
                 loop.run_in_executor(
                     None,
                     process,
-                    audio,
+                    file,
                     task,
                     language,
                     batch_size,
@@ -251,7 +251,7 @@ def upload(
         else:
             running_tasks[task_id] = None
             outputs = process(
-                audio,
+                file,
                 task,
                 language,
                 batch_size,
