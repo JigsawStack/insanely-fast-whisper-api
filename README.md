@@ -105,7 +105,7 @@ Transcribe or translate audio into text
 | task | `transcribe`, `translate`  default: `transcribe` |
 | language | `None`, `en`, [other languages](https://huggingface.co/openai/whisper-large-v3) default: `None` Auto detects language
 | batch_size | Number of parallel batches you want to compute. Reduce if you face OOMs. default: `64` |
-| timestamp | `chunk`, `work`  default: `chunk` |
+| timestamp | `chunk`, `word`  default: `chunk` |
 | diarise_audio | Diarise the audio clips by speaker. You will need to set hf_token. default:`false` |
 | webhook | Webhook `POST` call on completion or error. default: `None` |
 | webhook.url | URL to send the webhook |
