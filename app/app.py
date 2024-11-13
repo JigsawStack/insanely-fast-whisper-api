@@ -6,6 +6,7 @@ from fastapi import (
     Body,
     BackgroundTasks,
     Request,
+    UploadFile
 )
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -49,7 +50,7 @@ class WebhookBody(BaseModel):
 
 
 def process(
-    url: str,
+    url: str | bytes,
     task: str,
     language: str,
     batch_size: int,
@@ -176,6 +177,79 @@ def root(
             running_tasks[task_id] = None
             outputs = process(
                 url,
+                task,
+                language,
+                batch_size,
+                timestamp,
+                diarise_audio,
+                webhook,
+                task_id,
+            )
+            resp = {
+                "output": outputs,
+                "status": "completed",
+                "task_id": task_id,
+            }
+        if fly_machine_id is not None:
+            resp["fly_machine_id"] = fly_machine_id
+        return resp
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/upload")
+def upload(
+    audio: UploadFile,
+    task: str = Body(default="transcribe", enum=["transcribe", "translate"]),
+    language: str = Body(default="None"),
+    batch_size: int = Body(default=64),
+    timestamp: str = Body(default="chunk", enum=["chunk", "word"]),
+    diarise_audio: bool = Body(
+        default=False,
+    ),
+    webhook: str | None = Body(default=None),
+    is_async: bool = Body(default=False),
+    managed_task_id: str | None = Body(default=None),
+):
+    audio = audio.file.read()
+    if diarise_audio is True and hf_token is None:
+        raise HTTPException(status_code=500, detail="Missing Hugging Face Token")
+
+    if is_async is True and webhook is None:
+        raise HTTPException(
+            status_code=400, detail="Webhook is required for async tasks"
+        )
+
+    task_id = managed_task_id if managed_task_id is not None else str(uuid.uuid4())
+
+    try:
+        resp = {}
+        if is_async is True:
+            backgroundTask = asyncio.ensure_future(
+                loop.run_in_executor(
+                    None,
+                    process,
+                    audio,
+                    task,
+                    language,
+                    batch_size,
+                    timestamp,
+                    diarise_audio,
+                    webhook,
+                    task_id,
+                )
+            )
+            running_tasks[task_id] = backgroundTask
+            resp = {
+                "detail": "Task is being processed in the background",
+                "status": "processing",
+                "task_id": task_id,
+            }
+        else:
+            running_tasks[task_id] = None
+            outputs = process(
+                audio,
                 task,
                 language,
                 batch_size,
